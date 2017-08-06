@@ -36,11 +36,11 @@ class LocationDivide(object):
                 for j in range(0, lon_count):
                     # maxLat,minLon,minLat,maxLon
                     minLat = self.minLat + i * self.size
-                    minLon = self.minLon + i * self.size
+                    minLon = self.minLon + j * self.size
                     maxLat = self.minLat + (i + 1) * self.size
-                    if maxLat < self.maxLat:
+                    if maxLat > self.maxLat:
                         maxLat = self.maxLat
-                    maxLon = self.minLon + (i + 1) * self.size
+                    maxLon = self.minLon + (j + 1) * self.size
                     if maxLon > self.maxLon:
                         maxLon = self.maxLon
                     # minLat,minLon,maxLat,maxLon
