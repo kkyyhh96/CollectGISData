@@ -11,3 +11,5 @@ For example: region="39.915,116.405,39.975,116.415"
 For example: location = LocationDivide(region, 0.01)
 
 
+## Collect Street View Using Baidu API
+
