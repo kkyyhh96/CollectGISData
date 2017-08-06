@@ -3,17 +3,18 @@
 # author:Yuhao Kang
 # collect poi data from BaiduMap
 
-import requests
 import json
+
+import requests
 
 
 # Research region
 class LocationDivide(object):
     def __init__(self, bound, size):
-        # maxLat,minLon,minLat,maxLon
-        self.maxLat = float(str(bound).split(',')[0])
+        # minLat,minLon,maxLat,maxLon
+        self.minLat = float(str(bound).split(',')[0])
         self.minLon = float(str(bound).split(',')[1])
-        self.minLat = float(str(bound).split(',')[2])
+        self.maxLat = float(str(bound).split(',')[2])
         self.maxLon = float(str(bound).split(',')[3])
         self.size = size
 
@@ -27,19 +28,27 @@ class LocationDivide(object):
         else:
             lon_count = (self.maxLon - self.minLon) / self.size + 1
         bounds = []
-        for i in range(0, lat_count):
-            for j in range(0, lon_count):
-                # maxLat,minLon,minLat,maxLon
-                maxLat = self.maxLat - i * self.size
-                minLon = self.minLon + i * self.size
-                minLat = self.maxLat - (i + 1) * self.size
-                if minLat < self.minLat:
-                    minLat = self.minLat
-                maxLon = self.minLon + (i + 1) * self.size
-                if maxLon > self.maxLon:
-                    maxLon = self.maxLon
-                bound = "{0},{1},{2},{3}".format(maxLat, minLon, minLat, maxLon)
-                bounds.append(bound)
+        lat_count = int(lat_count)
+        lon_count = int(lon_count)
+
+        try:
+            for i in range(0, lat_count):
+                for j in range(0, lon_count):
+                    # maxLat,minLon,minLat,maxLon
+                    minLat = self.minLat + i * self.size
+                    minLon = self.minLon + i * self.size
+                    maxLat = self.minLat + (i + 1) * self.size
+                    if maxLat < self.maxLat:
+                        maxLat = self.maxLat
+                    maxLon = self.minLon + (i + 1) * self.size
+                    if maxLon > self.maxLon:
+                        maxLon = self.maxLon
+                    # minLat,minLon,maxLat,maxLon
+                    bound = "{0},{1},{2},{3}".format(minLat, minLon, maxLat, maxLon)
+                    bounds.append(bound)
+        except Exception as e:
+            with open("e:log.txt", 'a') as log:
+                log.writelines(e)
         return bounds
 
 
@@ -63,43 +72,60 @@ class BaiduAPI(object):
             "output": "json",
             "bounds": bound
         }
-        r = requests.get("http://api.map.baidu.com/place/v2/search", params)
-        json_data=json.load(r.text)
-        for poi in json_data:
-            if poi['total']==0:
-                return False
-            else:
-                for location in poi['results']:
-                    poi=POI(location['name'],location['location']['lat'],location['location']['lon'])
-                    poi.poi_write()
-                return True
+        try:
+            r = requests.get("http://api.map.baidu.com/place/v2/search", params)
+            # Translate json file
+            json_data = json.loads(r.text)
+        except Exception as e:
+            with open("e:log.txt", 'a') as log:
+                log.writelines(e)
 
+        # No result then next request
+        if json_data['total'] == 0:
+            return False
+        # Have result then get the name and coordinates
+        else:
+            for location in json_data['results']:
+                poi = POI(location['name'], location['location']['lat'], location['location']['lng'])
+                poi.poi_write()
+            return True
 
+    # Get all poi data in the bound
     def get_all_poi(self):
-        count=0
         for bound in self.bounds:
-            while self.search_poi(count,bound)== True:
-                count+=1
+            count = 0
+            while count < 20 and self.search_poi(count, bound) == True:
+                count += 1
             else:
                 continue
 
 
-
 class POI(object):
-    def __init__(self,name,lat,lon):
-        self.name=name
-        self.lat=lat
-        self.lon=lon
+    def __init__(self, name, lat, lon):
+        self.name = name
+        self.lat = lat
+        self.lon = lon
 
+    # Save in csv file
     def poi_write(self):
-        with open("e:\\poi.csv",'a') as file:
-            file.writelines("{0},{1},{2}".format(self.name,self.lat,self.lon))
+        try:
+            with open("e:\\poi.csv", 'a') as file:
+                file.writelines("{0},{1},{2}\n".format(self.name, self.lat, self.lon))
+        except Exception as e:
+            with open("e:log.txt", 'a') as log:
+                log.writelines(e)
+
 
 if __name__ == '__main__':
     # Search key word
     query_word = "美食"
 
-    # Set region bound
-    # maxLat,minLon,minLat,maxLon
-    location = LocationDivide("39.975,116.405,39.915,116.415", 0.05)
+    # Set region bound and interval
+    # minLat,minLon,maxLat,maxLon,interval
+    region="39.915,116.405,39.975,116.415"
+    location = LocationDivide(region, 0.01)
+
+    print("Start! Key word: {0}, Region: {1}".format(query_word,region))
     baidu_search = BaiduAPI(query_word, location.compute_block())
+    baidu_search.get_all_poi()
+    print("End!")
