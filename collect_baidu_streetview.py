@@ -23,10 +23,9 @@ class BaiduAPI(object):
         try:
             # Download pictures
             r = requests.get("http://api.map.baidu.com/panorama/v2", params)
-            open("{0}_{1}.png".format(longitude,latitude), 'wb').write(r.content)
+            open("{0}_{1}.png".format(longitude, latitude), 'wb').write(r.content)
         except Exception as e:
-            with open("e:log.txt", 'a') as log:
-                log.writelines(e)
+            open("e:log.txt", 'a').writelines(e)
 
 
 if __name__ == '__main__':
@@ -38,5 +37,5 @@ if __name__ == '__main__':
             longitude = line.split(',')[0]
             latitude = line.split(',')[1]
             # Get pictures
-            baidu=BaiduAPI()
-            baidu.search_photo(longitude,latitude)
+            baidu = BaiduAPI()
+            baidu.search_photo(longitude, latitude)

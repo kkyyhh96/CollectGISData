@@ -122,10 +122,11 @@ if __name__ == '__main__':
 
     # Set region bound and interval
     # minLat,minLon,maxLat,maxLon,interval
-    region="39.915,116.405,39.975,116.415"
+    region = "39.915,116.405,39.975,116.415"
     location = LocationDivide(region, 0.01)
 
-    print("Start! Key word: {0}, Region: {1}".format(query_word,region))
+    # Collect POI data
+    print("Start! Key word: {0}, Region: {1}".format(query_word, region))
     baidu_search = BaiduAPI(query_word, location.compute_block())
     baidu_search.get_all_poi()
     print("End!")
