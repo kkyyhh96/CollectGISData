@@ -1,4 +1,4 @@
-# Interview demo code for Song Gao
+# Methods for Collectinng POI data and Street View data
 ## Collect POI Using Baidu API
 I use Baidu Place API to do this.
 http://lbsyun.baidu.com/index.php?title=webapi/guide/webservice-placeapi
