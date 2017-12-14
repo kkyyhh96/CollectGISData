@@ -1,7 +1,7 @@
 # coding:utf-8
 # version:python3.5
 # author:Yuhao Kang
-# collect poi data from BaiduMap
+# collect poi data from BaiduMap in Chengdu
 
 import json
 
@@ -68,7 +68,8 @@ class BaiduAPI(object):
                 "page_size": 20,
                 "page_num": page_num,
                 "scope": 2,
-                "coord_type": 1,
+                "coord_type": 2,
+                "ret_coordtype":"gcj02ll",
                 "ak": self.api_key,
                 "output": "json",
                 "bounds": bound
