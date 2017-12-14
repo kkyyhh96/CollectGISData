@@ -47,7 +47,7 @@ class LocationDivide(object):
                     bound = "{0},{1},{2},{3}".format(minLat, minLon, maxLat, maxLon)
                     bounds.append(bound)
         except Exception as e:
-            with open("e:log.txt", 'a') as log:
+            with open("log.txt", 'a') as log:
                 log.writelines(e)
         return bounds
 
@@ -77,7 +77,7 @@ class BaiduAPI(object):
             # Translate json file
             json_data = json.loads(r.text)
         except Exception as e:
-            with open("e:log.txt", 'a') as log:
+            with open("log.txt", 'a') as log:
                 log.writelines(e)
 
         # No result then next request
@@ -86,8 +86,20 @@ class BaiduAPI(object):
         # Have result then get the name and coordinates
         else:
             for location in json_data['results']:
-                poi = POI(location['name'], location['location']['lat'], location['location']['lng'])
-                poi.poi_write()
+                poi = POI(location['name'], location['location']['lat'], location['location']['lng'],
+                          location['address'])
+                type = ""
+                tag = ""
+                try:
+                    type = location['detail_info']['type']
+                except Exception as e:
+                    pass
+                try:
+                    tag = location['detail_info']['tag']
+                except Exception as e:
+                    pass
+                poi.get_type(type, tag)
+                # poi.poi_write()
             return True
 
     # Get all poi data in the bound
@@ -101,32 +113,41 @@ class BaiduAPI(object):
 
 
 class POI(object):
-    def __init__(self, name, lat, lon):
+    def __init__(self, name, lat, lon, address):
         self.name = name
         self.lat = lat
         self.lon = lon
+        self.address = address
+
+    def get_type(self, type="", tag=""):
+        self.type = type
+        self.tag = tag
 
     # Save in csv file
     def poi_write(self):
         try:
-            with open("e:\\poi.csv", 'a') as file:
-                file.writelines("{0},{1},{2}\n".format(self.name, self.lat, self.lon))
+            with open("poi.csv", 'a') as file:
+                file.writelines(
+                    "{0},{1},{2},{3},{4},{5}\n".format(self.name, self.lat, self.lon, self.address,
+                                                       self.type, self.tag))
         except Exception as e:
-            with open("e:log.txt", 'a') as log:
+            with open("log.txt", 'a') as log:
                 log.writelines(e)
 
 
 if __name__ == '__main__':
     # Search key word
-    query_word = "美食"
+    query_word_list = ["美食", "酒店", "购物", "生活服务", "丽人", "旅游景点",
+                       "休闲娱乐", "运动健身", "教育培训", "文化传媒", "医疗",
+                       "汽车服务", "交通设施", "金融", "房地产", "公司企业", "政府机构"]
+    for query_word in query_word_list:
+        # Set region bound and interval
+        # minLat,minLon,maxLat,maxLon,interval
+        region = "30.3216,103.6,31.015,104.484"
+        location = LocationDivide(region, 0.01)
 
-    # Set region bound and interval
-    # minLat,minLon,maxLat,maxLon,interval
-    region = "30.3216,103.6,31.015,104.484"
-    location = LocationDivide(region, 0.01)
-
-    # Collect POI data
-    print("Start! Key word: {0}, Region: {1}".format(query_word, region))
-    baidu_search = BaiduAPI(query_word, location.compute_block())
-    baidu_search.get_all_poi()
-    print("End!")
+        # Collect POI data
+        print("Start! Key word: {0}, Region: {1}".format(query_word, region))
+        baidu_search = BaiduAPI(query_word, location.compute_block())
+        baidu_search.get_all_poi()
+        print("End!")
