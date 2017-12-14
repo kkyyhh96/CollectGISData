@@ -100,7 +100,7 @@ class BaiduAPI(object):
                     except Exception as e:
                         pass
                     poi.get_type(type, tag)
-                    # poi.poi_write()
+                    poi.poi_write()
                     return True
         except Exception as e:
             return False
@@ -108,11 +108,15 @@ class BaiduAPI(object):
     # Get all poi data in the bound
     def get_all_poi(self):
         for bound in self.bounds:
-            count = 0
-            while count < 20 and self.search_poi(count, bound) == True:
-                count += 1
-            else:
-                continue
+            try:
+                count = 0
+                while count < 20 and self.search_poi(count, bound) == True:
+                    count += 1
+                else:
+                    continue
+            except Exception as e:
+                with open('log.txt', 'a') as logfile:
+                    logfile.writelines(e)
 
 
 class POI(object):
@@ -129,7 +133,7 @@ class POI(object):
     # Save in csv file
     def poi_write(self):
         try:
-            with open("poi.csv", 'a') as file:
+            with open(file_name, 'a') as file:
                 file.writelines(
                     "{0},{1},{2},{3},{4},{5}\n".format(self.name, self.lat, self.lon, self.address,
                                                        self.type, self.tag))
@@ -144,6 +148,8 @@ if __name__ == '__main__':
                        "休闲娱乐", "运动健身", "教育培训", "文化传媒", "医疗",
                        "汽车服务", "交通设施", "金融", "房地产", "公司企业", "政府机构"]
     for query_word in query_word_list:
+        global file_name
+        file_name = "{0}.csv".format(query_word)
         # Set region bound and interval
         # minLat,minLon,maxLat,maxLon,interval
         region = "30.3216,103.6,31.015,104.484"
@@ -155,6 +161,6 @@ if __name__ == '__main__':
             baidu_search = BaiduAPI(query_word, location.compute_block())
             baidu_search.get_all_poi()
         except Exception as e:
-            with open('log.txt','a') as logfile:
+            with open('log.txt', 'a') as logfile:
                 logfile.writelines(e)
         print("End!")
