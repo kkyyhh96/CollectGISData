@@ -62,45 +62,48 @@ class BaiduAPI(object):
 
     # Each search request
     def search_poi(self, page_num, bound):
-        params = {
-            "q": str(self.word),
-            "page_size": 20,
-            "page_num": page_num,
-            "scope": 2,
-            "coord_type": 1,
-            "ak": self.api_key,
-            "output": "json",
-            "bounds": bound
-        }
         try:
-            r = requests.get("http://api.map.baidu.com/place/v2/search", params)
-            # Translate json file
-            json_data = json.loads(r.text)
-        except Exception as e:
-            with open("log.txt", 'a') as log:
-                log.writelines(e)
+            params = {
+                "q": str(self.word),
+                "page_size": 20,
+                "page_num": page_num,
+                "scope": 2,
+                "coord_type": 1,
+                "ak": self.api_key,
+                "output": "json",
+                "bounds": bound
+            }
+            try:
+                r = requests.get("http://api.map.baidu.com/place/v2/search", params)
+                # Translate json file
+                json_data = json.loads(r.text)
+            except Exception as exception:
+                with open("log.txt", 'a') as log:
+                    log.writelines(exception)
 
-        # No result then next request
-        if json_data['total'] == 0:
+            # No result then next request
+            if json_data['total'] == 0:
+                return False
+            # Have result then get the name and coordinates
+            else:
+                for location in json_data['results']:
+                    poi = POI(location['name'], location['location']['lat'], location['location']['lng'],
+                              location['address'])
+                    type = ""
+                    tag = ""
+                    try:
+                        type = location['detail_info']['type']
+                    except Exception as e:
+                        pass
+                    try:
+                        tag = location['detail_info']['tag']
+                    except Exception as e:
+                        pass
+                    poi.get_type(type, tag)
+                    # poi.poi_write()
+                    return True
+        except Exception as e:
             return False
-        # Have result then get the name and coordinates
-        else:
-            for location in json_data['results']:
-                poi = POI(location['name'], location['location']['lat'], location['location']['lng'],
-                          location['address'])
-                type = ""
-                tag = ""
-                try:
-                    type = location['detail_info']['type']
-                except Exception as e:
-                    pass
-                try:
-                    tag = location['detail_info']['tag']
-                except Exception as e:
-                    pass
-                poi.get_type(type, tag)
-                # poi.poi_write()
-            return True
 
     # Get all poi data in the bound
     def get_all_poi(self):
@@ -148,6 +151,10 @@ if __name__ == '__main__':
 
         # Collect POI data
         print("Start! Key word: {0}, Region: {1}".format(query_word, region))
-        baidu_search = BaiduAPI(query_word, location.compute_block())
-        baidu_search.get_all_poi()
+        try:
+            baidu_search = BaiduAPI(query_word, location.compute_block())
+            baidu_search.get_all_poi()
+        except Exception as e:
+            with open('log.txt','a') as logfile:
+                logfile.writelines(e)
         print("End!")
