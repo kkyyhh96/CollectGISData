@@ -56,7 +56,7 @@ class LocationDivide(object):
 class BaiduAPI(object):
     def __init__(self, word, bounds):
         # Your baidu api key
-        self.api_key = "uwhciGdsgvcAvzybc6Up1S4Q"
+        self.api_key = ""
         self.word = word
         self.bounds = bounds
 

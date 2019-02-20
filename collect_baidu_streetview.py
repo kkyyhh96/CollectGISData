@@ -10,7 +10,7 @@ import requests
 class BaiduAPI(object):
     def __init__(self):
         # Your baidu api key
-        self.api_key = "uwhciGdsgvcAvzybc6Up1S4Q"
+        self.api_key = ""
 
     # Each search request
     def search_photo(self, longitude, latitude):

@@ -56,8 +56,8 @@ class LocationDivide(object):
 class AMapAPI(object):
     def __init__(self, search_type, bounds):
         # Your Amap api key
-        self.api_key = "66be70cd5f865446b870937f042c8e74"
-        # self.api_key = "5892a17e4899dd11bd69d6eea7361187"
+        self.api_key = ""
+        # self.api_key = ""
         self.type = search_type
         self.bounds = bounds
 
